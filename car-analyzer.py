@@ -1,7 +1,8 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 import re
-from prometheus_client import start_http_server, Gauge
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 # Create a function that takes a url and returns a dictionary with the data we have collected
@@ -41,20 +42,10 @@ def get_car_data(url):
     }
 
 
-# Expose the car data with the prometheus client
-def expose_car_data(car_data):
-    price_gauge = Gauge('car_price', 'Price of the car', ['make', 'model', 'location', 'url'])
-    mileage_gauge = Gauge('car_mileage', 'Mileage of the car', ['make', 'model', 'location', 'url'])
-    first_registration_gauge = Gauge('car_first_registration', 'First registration of the car',
-                                     ['make', 'model', 'location', 'url'])
-    price_gauge.labels(car_data['make'], car_data['model'], car_data['location'], car_data['url']).set(
-        car_data['price'])
-    mileage_gauge.labels(car_data['make'], car_data['model'], car_data['location'], car_data['url']).set(
-        car_data['mileage'])
-    first_registration_gauge.labels(car_data['make'], car_data['model'], car_data['location'], car_data['url']).set(
-        car_data['first_registration'])
+# import logging
+logging.basicConfig(level=logging.DEBUG)
 
-
+# Get the data from the cars
 cars_to_analyze = [
     'https://www.autoscout24.com/offers/audi-a5-coupe-3-2-fsi-quattro-s-line-plus-xenon-b-o-gasoline-black-e6193db6-e5a4-4ef3-a179-8a73a93fec2b?ipc=recommendation&ipl=homepage-bestresult-listings&position=1&source_otp=t10&source=homepage_last-search',
     'https://www.autoscout24.com/offers/mercedes-benz-cls-350-7g-tronic-gasoline-silver-c1b46f5f-d7a6-4a63-88ec-cb5baf02413c?ipc=recommendation&ipl=homepage-engine-itemBased&position=3&source_otp=nfm&source=homepage_recommender'
@@ -63,4 +54,3 @@ for car in cars_to_analyze:
     get_car_data(car)
 
 # start http server for prometheus
-start_http_server(8000)
